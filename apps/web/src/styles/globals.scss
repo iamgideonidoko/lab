@@ -1,0 +1,75 @@
+/**
+ * Global Styles
+ */
+
+@use 'tokens.generated' as tokens;
+
+@include tokens.define-css-vars();
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+  background:
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.06), transparent 32%),
+    radial-gradient(circle at 20% 20%, rgba(120, 119, 198, 0.08), transparent 28%),
+    linear-gradient(180deg, #0b0b0c 0%, #09090b 48%, #050507 100%);
+  color: #ededf0;
+  font-family:
+    'Inter',
+    system-ui,
+    -apple-system,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+canvas {
+  display: block;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 2px;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.28);
+  }
+}
+
+::selection {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.45);
+  outline-offset: 2px;
+}
+
+.lab-mono {
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  font-feature-settings:
+    'liga' 1,
+    'calt' 1;
+}

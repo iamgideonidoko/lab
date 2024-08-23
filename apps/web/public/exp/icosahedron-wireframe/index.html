@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Icosahedron Wireframe (Orbit Controls) — GI LAB</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: #050507;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+      }
+      #info {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: rgba(0, 212, 207, 0.6);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="info">GI LAB / web-native / Icosahedron Wireframe (Orbit Controls)</div>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.170.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.170.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module">
+      import * as THREE from 'three';
+      import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+      // duplicated for this web-native — source of truth is packages/design-tokens
+      const COLORS = {
+        primary: 0x00d4cf,
+        accent: 0x8832ff,
+        bg: 0x050507,
+      };
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      document.body.appendChild(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(COLORS.bg);
+
+      const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+      camera.position.set(0, 0, 5);
+
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enablePan = false;
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+
+      const geometry = new THREE.IcosahedronGeometry(1.8, 4);
+      const material = new THREE.MeshStandardMaterial({
+        color: COLORS.primary,
+        wireframe: true,
+        opacity: 0.4,
+        transparent: true,
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      scene.add(mesh);
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+      const pLight = new THREE.PointLight(COLORS.primary, 2, 20);
+      pLight.position.set(4, 4, 4);
+      scene.add(pLight);
+      const pLight2 = new THREE.PointLight(COLORS.accent, 1.5, 20);
+      pLight2.position.set(-4, -4, -2);
+      scene.add(pLight2);
+
+      const clock = new THREE.Clock();
+      function animate() {
+        requestAnimationFrame(animate);
+        const t = clock.getElapsedTime();
+        mesh.rotation.y = t * 0.2;
+        mesh.rotation.x = t * 0.08;
+        const s = 1 + Math.sin(t * 0.6) * 0.08;
+        mesh.scale.setScalar(s);
+        controls.update();
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    </script>
+  </body>
+</html>

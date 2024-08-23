@@ -1,0 +1,35 @@
+{
+  "name": "gi-lab",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Creative playground",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "format": "prettier --write .",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "sync-tokens": "tsx scripts/sync-tokens.ts",
+    "new-exp": "tsx scripts/new-exp.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.6",
+    "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "tsx": "^4.21.0",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.4",
+  "pnpm": {
+    "overrides": {
+      "@types/react": "^19.2.14",
+      "@types/react-dom": "^19.2.3"
+    }
+  }
+}

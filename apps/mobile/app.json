@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "GI LAB",
+    "slug": "gi-lab",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "scheme": "gi-lab",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#050507"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.gi-lab.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#050507"
+      },
+      "package": "com.gi-lab.mobile"
+    },
+    "web": {
+      "bundler": "metro",
+      "backgroundColor": "#050507"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#050507"
+        }
+      ],
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

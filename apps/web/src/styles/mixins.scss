@@ -1,0 +1,122 @@
+/**
+ * SCSS Mixins
+ * Creative-coding specific loops, staggered animations, and generative helpers.
+ *
+ * Usage: @use "mixins" as *;
+ */
+
+@use 'sass:map';
+
+/// Generates staggered animation-delay for n children.
+/// @param {Number} $count - Number of children
+/// @param {Number} $delay - Base delay increment (ms)
+/// @param {String} $selector - Child selector (default: '> *')
+@mixin stagger($count: 8, $delay: 80, $selector: '> *') {
+  #{$selector} {
+    @for $i from 1 through $count {
+      &:nth-child(#{$i}) {
+        animation-delay: #{$i * $delay}ms;
+        transition-delay: #{$i * $delay}ms;
+      }
+    }
+  }
+}
+
+/// Generates a CSS grid with a dot/line background pattern.
+/// @param {Color} $color - Dot color
+/// @param {Number} $size - Grid cell size (px)
+@mixin grid-pattern($color: rgba(144, 144, 184, 0.08), $size: 40) {
+  background-image:
+    linear-gradient(#{$color} 1px, transparent 1px), linear-gradient(90deg, #{$color} 1px, transparent 1px);
+  background-size: #{$size}px #{$size}px;
+}
+
+/// Applies a layered glow effect using box-shadow.
+/// @param {Color} $color - Glow color
+/// @param {Number} $intensity - Multiplier for spread (default: 1)
+@mixin glow($color: #00d4cf, $intensity: 1) {
+  box-shadow:
+    0 0 #{4 * $intensity}px $color,
+    0 0 #{12 * $intensity}px rgba($color, 0.6),
+    0 0 #{40 * $intensity}px rgba($color, 0.3);
+}
+
+@mixin text-glow($color: #00d4cf, $spread: 16px) {
+  text-shadow:
+    0 0 8px rgba($color, 0.8),
+    0 0 $spread rgba($color, 0.5);
+}
+
+/// Classic CRT scanline overlay.
+@mixin scanlines($opacity: 0.03, $size: 3px) {
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent,
+      transparent #{$size},
+      rgba(0, 0, 0, $opacity) #{$size},
+      rgba(0, 0, 0, $opacity) #{$size * 2}
+    );
+    pointer-events: none;
+    z-index: 100;
+  }
+}
+
+/// Smooth lift-and-glow on hover. Uses CUBIC_BEZIER.outExpo from design tokens.
+/// IMPORTANT: $ease should be set to var(--ease-out-expo) after sync-tokens runs.
+@mixin hover-lift($y: -4px, $ease: cubic-bezier(0.16, 1, 0.3, 1), $duration: 0.4s) {
+  transition:
+    transform $duration $ease,
+    box-shadow $duration $ease;
+
+  &:hover {
+    transform: translateY(#{$y});
+  }
+}
+
+/// Clip-path reveal animation for text/elements.
+@mixin clip-reveal($direction: 'bottom', $duration: 0.7s) {
+  @if $direction == 'bottom' {
+    clip-path: inset(100% 0 0 0);
+    animation: clip-reveal-bottom $duration cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  } @else if $direction == 'left' {
+    clip-path: inset(0 100% 0 0);
+    animation: clip-reveal-left $duration cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+}
+
+@keyframes clip-reveal-bottom {
+  to {
+    clip-path: inset(0% 0 0 0);
+  }
+}
+
+@keyframes clip-reveal-left {
+  to {
+    clip-path: inset(0 0% 0 0);
+  }
+}
+
+$breakpoints: (
+  'sm': 640px,
+  'md': 768px,
+  'lg': 1024px,
+  'xl': 1280px,
+  '2xl': 1536px,
+);
+
+@mixin responsive($bp) {
+  @media (min-width: map.get($breakpoints, $bp)) {
+    @content;
+  }
+}
+
+@mixin glassmorphism($blur: 12px, $bg: rgba(22, 22, 31, 0.7)) {
+  background: $bg;
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}

@@ -1,0 +1,21 @@
+{
+  "name": "@gi-lab/utils",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Math utilities and hooks for GI LAB experiments",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "^18.3.1"
+  },
+  "devDependencies": {
+    "typescript": "*",
+    "@types/react": "^18.3.12"
+  }
+}
