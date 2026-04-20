@@ -10,6 +10,25 @@ export type { LSystemConfig, LSystemResult, LSystemRules, LineSegment, TurtleCon
 export { useKeyboard } from './hooks/use-keyboard';
 export type { KeyboardState, UseKeyboardOptions, Key } from './hooks/use-keyboard';
 
+export {
+  experimentRegistry,
+  webExperiments,
+  mobileExperiments,
+  getExperimentBySlug,
+  getWebExperimentBySlug,
+  getMobileExperimentBySlug,
+  isWebExperiment,
+  isMobileExperiment,
+} from './experiments';
+export type {
+  ExperimentDefinition,
+  ExperimentSlug,
+  WebExperimentType,
+  WebExperimentEntry,
+  MobileExperimentEntry,
+  WebExperimentSlug,
+} from './experiments';
+
 export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 export const clamp = (v: number, min: number, max: number) => Math.min(Math.max(v, min), max);
 export const mapRange = (v: number, inMin: number, inMax: number, outMin: number, outMax: number) =>

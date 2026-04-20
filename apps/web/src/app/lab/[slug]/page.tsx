@@ -1,49 +1,32 @@
-import type { JSX, ComponentType } from 'react';
+import type { JSX } from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { getWebExperimentBySlug } from '@gi-lab/utils';
 import { ExperimentClient } from './ExperimentClient';
 import styles from './page.module.scss';
-
-interface ExperimentModule {
-  default: ComponentType;
-  metadata?: { title?: string; description?: string };
-}
-
-/**
- * Dynamic experiment registry.
- * Maps slugs to dynamic imports from src/experiments/.
- * Add a new entry here whenever you scaffold a new experiment.
- *
- * TIP: run `make exp name=my-experiment type=web`
- *      The script will append an entry here automatically.
- */
-const EXPERIMENT_REGISTRY: Record<string, () => Promise<ExperimentModule>> = {
-  'noise-sphere': () => import('@/experiments/noise-sphere'),
-  'icosahedron-wireframe': () => import('@/experiments/icosahedron-wireframe'),
-};
+import { webExperimentLoaders } from '@/experiments/registry';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
 export async function generateStaticParams() {
-  return Object.keys(EXPERIMENT_REGISTRY).map((slug) => ({ slug }));
+  return Object.keys(webExperimentLoaders).map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
-  const loader = EXPERIMENT_REGISTRY[slug];
-  if (!loader) return { title: 'Not Found' };
-  const mod = await loader();
+  const experiment = getWebExperimentBySlug(slug);
+  if (!experiment) return { title: 'Not Found' };
   return {
-    title: mod.metadata?.title ?? slug,
-    description: mod.metadata?.description,
+    title: experiment.title,
+    description: experiment.web.description,
   };
 }
 
 export default async function LabPage({ params }: PageProps): Promise<JSX.Element> {
   const { slug } = await params;
-  if (!EXPERIMENT_REGISTRY[slug]) notFound();
+  if (!getWebExperimentBySlug(slug)) notFound();
 
   return (
     <div className={styles.root}>

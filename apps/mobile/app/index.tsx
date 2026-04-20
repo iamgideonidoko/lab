@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import Animated, { useSharedValue, useAnimatedStyle, withDelay, withTiming, Easing } from 'react-native-reanimated';
 import { useEffect } from 'react';
 import { CUBIC_BEZIER, DURATION } from '@gi-lab/design-tokens';
+import { mobileExperiments } from '@gi-lab/utils';
 
 const shell = {
   bg: '#09090b',
@@ -14,10 +15,6 @@ const shell = {
   muted: 'rgba(255, 255, 255, 0.48)',
   pill: 'rgba(255, 255, 255, 0.03)',
 };
-
-const EXPERIMENTS = [
-  { slug: 'noise-sphere', title: 'Noise Sphere', type: 'MOBILE', description: 'Animated token-driven field study' },
-] as const;
 
 function ExperimentCard({
   title,
@@ -162,12 +159,12 @@ export default function HomeScreen() {
         </Text>
       </Animated.View>
 
-      {EXPERIMENTS.map((experiment, i) => (
+      {mobileExperiments.map((experiment, i) => (
         <ExperimentCard
           key={experiment.slug}
           title={experiment.title}
-          type={experiment.type}
-          description={experiment.description}
+          type="MOBILE"
+          description={experiment.mobile.description}
           index={i}
           onPress={() => {
             router.push(`/experiments/${experiment.slug}` as never);

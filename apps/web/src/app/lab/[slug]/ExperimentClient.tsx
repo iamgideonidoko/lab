@@ -2,21 +2,15 @@
 
 import type { JSX } from 'react';
 import dynamic from 'next/dynamic';
+import type { WebExperimentSlug } from '@gi-lab/utils';
+import { webExperimentLoaders } from '@/experiments/registry';
 
-/**
- * Client-side experiment registry — mirrors EXPERIMENT_REGISTRY in page.tsx.
- * Each entry is wrapped with next/dynamic + ssr:false so Three.js/R3F
- * never runs during server-side prerendering.
- *
- * Add a new entry here whenever you add one to EXPERIMENT_REGISTRY.
- */
-const EXPERIMENTS: Record<string, ReturnType<typeof dynamic>> = {
-  'noise-sphere': dynamic(() => import('@/experiments/noise-sphere'), { ssr: false }),
-  'icosahedron-wireframe': dynamic(() => import('@/experiments/icosahedron-wireframe'), { ssr: false }),
-};
+const webExperimentClients = Object.fromEntries(
+  Object.entries(webExperimentLoaders).map(([slug, loader]) => [slug, dynamic(loader, { ssr: false })]),
+) as Record<WebExperimentSlug, ReturnType<typeof dynamic>>;
 
 export function ExperimentClient({ slug }: { slug: string }): JSX.Element | null {
-  const Experiment = EXPERIMENTS[slug];
+  const Experiment = webExperimentClients[slug as keyof typeof webExperimentClients];
   if (!Experiment) return null;
   return <Experiment />;
 }

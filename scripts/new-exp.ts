@@ -48,6 +48,8 @@ const componentName = titleCase.replace(/ /g, '');
 const WEB_EXPERIMENT_DIR = resolve(ROOT, 'apps/web/src/experiments', slug);
 const MOBILE_EXPERIMENT_DIR = resolve(ROOT, 'apps/mobile/app/experiments');
 const MOBILE_EXPERIMENT_PATH = resolve(MOBILE_EXPERIMENT_DIR, `${slug}.tsx`);
+const SHARED_EXPERIMENTS_PATH = resolve(ROOT, 'packages/utils/src/experiments.ts');
+const WEB_REGISTRY_PATH = resolve(ROOT, 'apps/web/src/experiments/registry.ts');
 
 const WEB_TEMPLATE = `'use client'
 
@@ -634,38 +636,78 @@ export default function ${componentName}Screen() {
 }
 `;
 
-async function registerWebExperiment(): Promise<void> {
-  const pagePath = resolve(ROOT, 'apps/web/src/app/lab/[slug]/page.tsx');
-  const pageSource = await readFile(pagePath, 'utf8');
-  const pageEntry = `  '${slug}': () => import('@/experiments/${slug}'),`;
+function findExperimentBlockBounds(source: string, experimentSlug: string): { start: number; end: number } | null {
+  const slugIndex = source.indexOf(`slug: '${experimentSlug}',`);
+  if (slugIndex === -1) return null;
 
-  if (!pageSource.includes(`'${slug}'`)) {
-    const patched = pageSource.replace(/(const EXPERIMENT_REGISTRY[^{]+\{)/, `$1\n${pageEntry}`);
-    await writeFile(pagePath, patched);
-    console.log(`\n✦  Registered in page.tsx:           apps/web/src/app/lab/[slug]/page.tsx`);
+  const start = source.lastIndexOf('  {', slugIndex);
+  if (start === -1) return null;
+
+  let depth = 0;
+  for (let index = start; index < source.length; index += 1) {
+    const char = source[index];
+    if (char === '{') depth += 1;
+    if (char === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        return { start, end: index };
+      }
+    }
   }
 
-  const clientPath = resolve(ROOT, 'apps/web/src/app/lab/[slug]/ExperimentClient.tsx');
-  const clientSource = await readFile(clientPath, 'utf8');
-  const clientEntry = `  '${slug}': dynamic(() => import('@/experiments/${slug}'), { ssr: false }),`;
+  return null;
+}
 
-  if (!clientSource.includes(`'${slug}'`)) {
-    const patchedClient = clientSource.replace(/(const EXPERIMENTS[^{]+\{)/, `$1\n${clientEntry}`);
-    await writeFile(clientPath, patchedClient);
-    console.log(`✦  Registered in ExperimentClient.tsx: apps/web/src/app/lab/[slug]/ExperimentClient.tsx`);
+async function registerExperimentMetadata(surface: 'web' | 'mobile'): Promise<void> {
+  const registrySource = await readFile(SHARED_EXPERIMENTS_PATH, 'utf8');
+  let nextSource = registrySource;
+
+  const webBlock = `    web: {\n      type: '${type}',\n      tags: ['todo'],\n      description: 'TODO: describe this ${type} experiment',\n    },\n`;
+  const mobileBlock = `    mobile: {\n      description: 'TODO: describe this mobile experiment',\n    },\n`;
+
+  const existingBounds = findExperimentBlockBounds(nextSource, slug);
+
+  if (existingBounds) {
+    const existingBlock = nextSource.slice(existingBounds.start, existingBounds.end + 1);
+    const alreadyRegistered = surface === 'web' ? existingBlock.includes('\n    web: {') : existingBlock.includes('\n    mobile: {');
+
+    if (!alreadyRegistered) {
+      const blockToInsert = surface === 'web' ? webBlock : mobileBlock;
+      nextSource =
+        nextSource.slice(0, existingBounds.end) + blockToInsert + nextSource.slice(existingBounds.end);
+    }
+  } else {
+    const newEntry =
+      surface === 'web'
+        ? `  {\n    slug: '${slug}',\n    title: '${titleCase}',\n    web: {\n      type: '${type}',\n      tags: ['todo'],\n      description: 'TODO: describe this ${type} experiment',\n    },\n  },`
+        : `  {\n    slug: '${slug}',\n    title: '${titleCase}',\n    mobile: {\n      description: 'TODO: describe this mobile experiment',\n    },\n  },`;
+
+    nextSource = nextSource.replace(/(export const experimentRegistry = \[)/, `$1\n${newEntry}`);
+  }
+
+  if (nextSource !== registrySource) {
+    await writeFile(SHARED_EXPERIMENTS_PATH, nextSource);
+    console.log(`✦  Registered in shared registry:    packages/utils/src/experiments.ts`);
+  }
+}
+
+async function registerWebExperiment(): Promise<void> {
+  const registrySource = await readFile(WEB_REGISTRY_PATH, 'utf8');
+  let nextSource = registrySource;
+  const loaderEntry = `  '${slug}': () => import('@/experiments/${slug}'),`;
+
+  if (!nextSource.includes(loaderEntry)) {
+    nextSource = nextSource.replace(/(export const webExperimentLoaders:[^{]+\{)/, `$1\n${loaderEntry}`);
+  }
+
+  if (nextSource !== registrySource) {
+    await writeFile(WEB_REGISTRY_PATH, nextSource);
+    console.log(`✦  Registered in web registry:       apps/web/src/experiments/registry.ts`);
   }
 }
 
 async function registerMobileExperiment(): Promise<void> {
-  const mobileIndexPath = resolve(ROOT, 'apps/mobile/app/index.tsx');
-  const mobileIndexSource = await readFile(mobileIndexPath, 'utf8');
-  const mobileEntry = `  { slug: '${slug}', title: '${titleCase}', type: 'MOBILE', description: 'TODO: describe this mobile experiment' },`;
-
-  if (!mobileIndexSource.includes(`slug: '${slug}'`)) {
-    const patchedMobileIndex = mobileIndexSource.replace(/(const EXPERIMENTS = \[)/, `$1\n${mobileEntry}`);
-    await writeFile(mobileIndexPath, patchedMobileIndex);
-    console.log(`✦  Registered in mobile index:        apps/mobile/app/index.tsx`);
-  }
+  await registerExperimentMetadata('mobile');
 }
 
 async function createWebExperiment(): Promise<void> {
@@ -678,6 +720,7 @@ async function createWebExperiment(): Promise<void> {
   await writeFile(resolve(WEB_EXPERIMENT_DIR, 'index.tsx'), WEB_TEMPLATE);
   await writeFile(resolve(WEB_EXPERIMENT_DIR, `${slug}.module.scss`), WEB_MODULE_TEMPLATE);
   await writeFile(resolve(WEB_EXPERIMENT_DIR, `${slug}.glsl`), WEB_GLSL_PLACEHOLDER);
+  await registerExperimentMetadata('web');
   await registerWebExperiment();
 
   console.log(`✦  Created web experiment:`);
@@ -697,6 +740,7 @@ async function createWebNativeExperiment(): Promise<void> {
   await mkdir(webNativeDir, { recursive: true });
   await writeFile(resolve(webNativeDir, 'index.html'), WEB_NATIVE_TEMPLATE);
   await writeFile(resolve(WEB_EXPERIMENT_DIR, 'index.tsx'), WEB_NATIVE_WRAPPER);
+  await registerExperimentMetadata('web');
   await registerWebExperiment();
 
   console.log(`✦  Created web-native experiment:`);

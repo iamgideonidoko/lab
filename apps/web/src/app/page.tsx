@@ -1,19 +1,10 @@
 import type { JSX } from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { webExperiments } from '@gi-lab/utils';
 import styles from './page.module.scss';
 
 export const metadata: Metadata = { title: 'GI LAB' };
-
-const EXPERIMENTS = [
-  { slug: 'noise-sphere', title: 'Noise Sphere', type: 'web', tags: ['noise', 'geometry'] },
-  {
-    slug: 'icosahedron-wireframe',
-    title: 'Icosahedron Wireframe (Orbit Controls)',
-    type: 'web-native',
-    tags: ['three', 'standalone'],
-  },
-] as const;
 
 export default function HomePage(): JSX.Element {
   return (
@@ -25,14 +16,14 @@ export default function HomePage(): JSX.Element {
       </header>
 
       <section className={styles.grid}>
-        {EXPERIMENTS.map((experiment) => (
+        {webExperiments.map((experiment) => (
           <Link key={experiment.slug} href={`/lab/${experiment.slug}`} className={styles.card}>
             <div className={styles.cardPreview} aria-label={`Preview of ${experiment.title}`} />
             <div className={styles.cardMeta}>
-              <span className={styles.cardType}>{experiment.type.toUpperCase()}</span>
+              <span className={styles.cardType}>{experiment.web.type.toUpperCase()}</span>
               <h2 className={styles.cardTitle}>{experiment.title}</h2>
               <div className={styles.cardTags}>
-                {experiment.tags.map((tag) => (
+                {experiment.web.tags.map((tag) => (
                   <span key={tag} className={styles.tag}>
                     {tag}
                   </span>
